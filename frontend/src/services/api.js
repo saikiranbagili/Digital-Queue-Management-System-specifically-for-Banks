@@ -1,0 +1,78 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 10000,
+});
+
+// Request interceptor to attach JWT token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('bankq_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for consistent error messaging
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('bankq_token');
+      localStorage.removeItem('bankq_user');
+      // If unauthorized and not on login page, can redirect
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'An unexpected error occurred';
+    return Promise.reject(new Error(message));
+  }
+);
+
+export const authApi = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  me: () => api.get('/auth/me'),
+};
+
+export const customerApi = {
+  getDashboard: () => api.get('/customer/dashboard'),
+  requestToken: (serviceName) => api.post('/customer/tokens', { serviceName }),
+  getMyTokens: () => api.get('/customer/tokens'),
+  getTokenById: (id) => api.get(`/customer/tokens/${id}`),
+  getTokenStatus: (id) => api.get(`/customer/tokens/${id}/status`),
+};
+
+export const staffApi = {
+  getDashboard: () => api.get('/staff/dashboard'),
+  getQueue: (serviceName) => api.get('/staff/queue', { params: { serviceName } }),
+  callNext: (serviceName, counterName) =>
+    api.post('/staff/queue/call-next', { serviceName, counterName }),
+  completeToken: (id) => api.post(`/staff/tokens/${id}/complete`),
+};
+
+export const adminApi = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getTokens: (params) => api.get('/admin/tokens', { params }),
+  getUsers: () => api.get('/admin/users'),
+  getServices: () => api.get('/admin/services'),
+  getCounters: () => api.get('/admin/counters'),
+};
+
+export const healthApi = {
+  check: () => api.get('/health'),
+};
+
+export default api;

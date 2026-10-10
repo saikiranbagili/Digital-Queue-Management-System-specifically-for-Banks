@@ -1,0 +1,20 @@
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+
+# Java / Maven / Backend
+backend/target/
+backend/data/
+backend/*.log
+backend/.env
+backend/.env.local
+
+# IDEs & System
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
