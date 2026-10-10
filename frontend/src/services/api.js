@@ -16,7 +16,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 60000, // 60s to accommodate cloud cold starts (Render free tier spin-up)
 });
 
 // Request interceptor to attach JWT token
@@ -43,11 +43,14 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    const message =
+    let message =
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
       'An unexpected error occurred';
+    if (error.code === 'ECONNABORTED' || (message && message.toLowerCase().includes('timeout'))) {
+      message = 'Cloud server is warming up from sleep. Please wait 10 seconds and click again!';
+    }
     return Promise.reject(new Error(message));
   }
 );
