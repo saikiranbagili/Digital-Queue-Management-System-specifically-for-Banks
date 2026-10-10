@@ -1,11 +1,22 @@
 import axios from 'axios';
 
+const getBaseUrl = () => {
+  let url = import.meta.env.VITE_API_BASE_URL || '/api';
+  if (url.endsWith('/')) {
+    url = url.slice(0, -1);
+  }
+  if (url.startsWith('http') && !url.endsWith('/api')) {
+    return `${url}/api`;
+  }
+  return url;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 15000,
 });
 
 // Request interceptor to attach JWT token
