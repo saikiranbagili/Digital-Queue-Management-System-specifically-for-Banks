@@ -6,6 +6,7 @@ services:
     dockerContext: backend
     plan: free
     region: oregon
+    autoDeploy: true
     healthCheckPath: /api/health
     envVars:
       - key: PORT
