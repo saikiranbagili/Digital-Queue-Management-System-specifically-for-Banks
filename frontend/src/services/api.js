@@ -1,14 +1,18 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-  let url = import.meta.env.VITE_API_BASE_URL || '/api';
-  if (url.endsWith('/')) {
-    url = url.slice(0, -1);
+  let url = (import.meta.env.VITE_API_BASE_URL || '/api').trim();
+  while (url.endsWith('/')) {
+    url = url.slice(0, -1).trim();
   }
-  if (url.startsWith('http') && !url.endsWith('/api')) {
-    return `${url}/api`;
+  // Strip any trailing /api to avoid accidental /api/api
+  while (url.endsWith('/api')) {
+    url = url.slice(0, -4).trim();
   }
-  return url;
+  if (!url || url === '') {
+    return '/api';
+  }
+  return `${url}/api`;
 };
 
 const api = axios.create({
