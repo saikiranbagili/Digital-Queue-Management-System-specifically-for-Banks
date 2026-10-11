@@ -8,6 +8,8 @@ public class UserResponse {
     private String name;
     private String email;
     private Role role;
+    private String bankName;
+    private String accountNumber;
     private LocalDateTime createdAt;
 
     public UserResponse() {}
@@ -17,6 +19,16 @@ public class UserResponse {
         this.name = name;
         this.email = email;
         this.role = role;
+        this.createdAt = createdAt;
+    }
+
+    public UserResponse(Long id, String name, String email, Role role, String bankName, String accountNumber, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.bankName = bankName;
+        this.accountNumber = accountNumber;
         this.createdAt = createdAt;
     }
 
@@ -50,6 +62,22 @@ public class UserResponse {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public LocalDateTime getCreatedAt() {

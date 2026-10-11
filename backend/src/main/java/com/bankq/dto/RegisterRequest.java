@@ -20,6 +20,10 @@ public class RegisterRequest {
 
     private Role role; // Defaults to CUSTOMER if null
 
+    private String bankName;
+
+    private String accountNumber;
+
     public RegisterRequest() {}
 
     public RegisterRequest(String name, String email, String password, Role role) {
@@ -27,6 +31,15 @@ public class RegisterRequest {
         this.email = email;
         this.password = password;
         this.role = role;
+    }
+
+    public RegisterRequest(String name, String email, String password, Role role, String bankName, String accountNumber) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.bankName = bankName;
+        this.accountNumber = accountNumber;
     }
 
     public String getName() {
@@ -59,5 +72,21 @@ public class RegisterRequest {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 }

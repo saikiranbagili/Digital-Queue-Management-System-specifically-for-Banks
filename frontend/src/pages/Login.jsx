@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { healthApi } from '../services/api';
 import { 
+  Building2,
   Lock, 
   Mail, 
   User as UserIcon, 
@@ -10,15 +11,34 @@ import {
   ShieldAlert, 
   UserPlus, 
   LogIn, 
-  CheckCircle2 
+  CheckCircle2,
+  CreditCard,
+  Sparkles
 } from 'lucide-react';
+
+export const BANK_OPTIONS = [
+  'State Bank of India (SBI)',
+  'HDFC Bank',
+  'ICICI Bank',
+  'Axis Bank',
+  'Punjab National Bank (PNB)',
+  'Bank of Baroda (BOB)',
+  'Canara Bank',
+  'Union Bank of India',
+  'Kotak Mahindra Bank',
+  'Bank of India',
+  'IndusInd Bank',
+  'Federal Bank'
+];
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role] = useState('CUSTOMER');
+  const [bankName, setBankName] = useState('State Bank of India (SBI)');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [isNewCustomerNoAccount, setIsNewCustomerNoAccount] = useState(false);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -41,15 +61,38 @@ const Login = () => {
     try {
       let user;
       if (isSignUp) {
+        if (!bankName) {
+          throw new Error('Please select your bank from the list');
+        }
         if (!name.trim()) {
           throw new Error('Please enter your full name');
+        }
+        if (!email.trim()) {
+          throw new Error('Please enter your email address');
         }
         if (password.length < 6) {
           throw new Error('Password must be at least 6 characters long');
         }
-        user = await register(name, email, password, 'CUSTOMER');
+        if (!isNewCustomerNoAccount && !accountNumber.trim()) {
+          throw new Error('Please enter your account number (or select the New Customer option if you are opening an account)');
+        }
+
+        user = await register(
+          name, 
+          email, 
+          password, 
+          'CUSTOMER', 
+          bankName, 
+          isNewCustomerNoAccount ? '' : accountNumber.trim()
+        );
+
+        if (isNewCustomerNoAccount) {
+          // Direct straight to Account Opening in dashboard to generate token!
+          navigate('/request-token?autoService=Account%20Opening');
+          return;
+        }
       } else {
-        user = await login(email, password);
+        user = await login(email, password, bankName, accountNumber.trim());
       }
 
       // Role-based smart redirection
@@ -156,6 +199,25 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
+          {/* Bank Selection Dropdown */}
+          <div className="form-group">
+            <label htmlFor="bankSelect" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Building2 size={15} color="#0284c7" />
+              <span>Select Bank</span>
+            </label>
+            <select
+              id="bankSelect"
+              className="form-input"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              required
+            >
+              {BANK_OPTIONS.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+
           {isSignUp && (
             <div className="form-group">
               <label htmlFor="name">Full Name</label>
@@ -203,6 +265,63 @@ const Login = () => {
             </div>
           </div>
 
+          {/* New Customer without account option (Sign Up only) */}
+          {isSignUp && (
+            <div style={{
+              margin: '1rem 0',
+              padding: '0.85rem 1rem',
+              background: isNewCustomerNoAccount ? 'rgba(2, 132, 199, 0.08)' : '#f8fafc',
+              border: `1.5px solid ${isNewCustomerNoAccount ? '#0284c7' : '#e2e8f0'}`,
+              borderRadius: '10px',
+              transition: 'all 0.2s ease'
+            }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', margin: 0, fontWeight: 600, color: '#0f2744', fontSize: '0.875rem' }}>
+                <input
+                  type="checkbox"
+                  id="newCustomerCheck"
+                  checked={isNewCustomerNoAccount}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsNewCustomerNoAccount(checked);
+                    if (checked) {
+                      setAccountNumber('');
+                    }
+                  }}
+                  style={{ width: '17px', height: '17px', accentColor: '#0284c7', cursor: 'pointer' }}
+                />
+                <span>I don't have a bank account yet (New Customer - Account Opening)</span>
+              </label>
+
+              {isNewCustomerNoAccount ? (
+                <p style={{ margin: '0.5rem 0 0 1.7rem', fontSize: '0.8rem', color: '#0369a1', lineHeight: 1.4 }}>
+                  <Sparkles size={13} style={{ display: 'inline', marginRight: '4px' }} />
+                  You don't need an account number. Enter your details above and you will be taken directly to generate your <strong>Account Opening queue token</strong>!
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          {/* Account Number Field (Only if not a new customer without account) */}
+          {(!isSignUp || !isNewCustomerNoAccount) && (
+            <div className="form-group">
+              <label htmlFor="accountNumber" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <CreditCard size={15} color="#0284c7" />
+                <span>Account Number {isSignUp ? '(Required for existing account holders)' : '(Optional)'}</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="accountNumber"
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. 104829104928"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  required={isSignUp && !isNewCustomerNoAccount}
+                />
+              </div>
+            </div>
+          )}
+
           {isSignUp && (
             <div className="form-group">
               <label htmlFor="role">Account Role</label>
@@ -231,7 +350,9 @@ const Login = () => {
           >
             {loading
               ? (isSignUp ? 'Creating your account...' : 'Authenticating...')
-              : (isSignUp ? 'Sign Up & Enter BankQ' : 'Sign In to BankQ')}
+              : (isSignUp 
+                  ? (isNewCustomerNoAccount ? 'Create Account & Get Account Opening Token' : 'Sign Up & Enter BankQ') 
+                  : 'Sign In to BankQ')}
             <ArrowRight size={16} />
           </button>
         </form>

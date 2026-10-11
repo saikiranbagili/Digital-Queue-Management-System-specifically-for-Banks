@@ -11,11 +11,22 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
+    private String bankName;
+
+    private String accountNumber;
+
     public LoginRequest() {}
 
     public LoginRequest(String email, String password) {
         this.email = email;
         this.password = password;
+    }
+
+    public LoginRequest(String email, String password, String bankName, String accountNumber) {
+        this.email = email;
+        this.password = password;
+        this.bankName = bankName;
+        this.accountNumber = accountNumber;
     }
 
     public String getEmail() {
@@ -32,5 +43,21 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 }

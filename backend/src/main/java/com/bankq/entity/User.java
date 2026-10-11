@@ -26,6 +26,12 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "account_number")
+    private String accountNumber;
+
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -36,6 +42,16 @@ public class User {
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public User(String name, String email, String passwordHash, Role role, String bankName, String accountNumber) {
+        this.name = name;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.role = role;
+        this.bankName = bankName;
+        this.accountNumber = accountNumber;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -77,6 +93,22 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public LocalDateTime getCreatedAt() {

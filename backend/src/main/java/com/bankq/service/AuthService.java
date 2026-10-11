@@ -45,7 +45,14 @@ public class AuthService {
         Role role = request.getRole() != null ? request.getRole() : Role.CUSTOMER;
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        User user = new User(request.getName().trim(), email, encodedPassword, role);
+        User user = new User(
+                request.getName().trim(),
+                email,
+                encodedPassword,
+                role,
+                request.getBankName(),
+                request.getAccountNumber()
+        );
         user = userRepository.save(user);
 
         String token = jwtUtils.generateToken(user);
@@ -54,6 +61,8 @@ public class AuthService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole(),
+                user.getBankName(),
+                user.getAccountNumber(),
                 user.getCreatedAt()
         );
 
@@ -73,12 +82,24 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
+        // If user logged in and optionally provided bank or account number that wasn't saved before
+        if (request.getBankName() != null && !request.getBankName().isBlank() && user.getBankName() == null) {
+            user.setBankName(request.getBankName());
+            userRepository.save(user);
+        }
+        if (request.getAccountNumber() != null && !request.getAccountNumber().isBlank() && user.getAccountNumber() == null) {
+            user.setAccountNumber(request.getAccountNumber());
+            userRepository.save(user);
+        }
+
         String token = jwtUtils.generateToken(user);
         UserResponse userResponse = new UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getRole(),
+                user.getBankName(),
+                user.getAccountNumber(),
                 user.getCreatedAt()
         );
 
@@ -94,6 +115,8 @@ public class AuthService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole(),
+                user.getBankName(),
+                user.getAccountNumber(),
                 user.getCreatedAt()
         );
     }

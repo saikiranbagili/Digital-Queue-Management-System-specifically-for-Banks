@@ -31,8 +31,12 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = async (email, password) => {
-    const res = await authApi.login({ email, password });
+  const login = async (email, password, bankName = '', accountNumber = '') => {
+    const payload = { email, password };
+    if (bankName) payload.bankName = bankName;
+    if (accountNumber) payload.accountNumber = accountNumber;
+
+    const res = await authApi.login(payload);
     const { token: jwtToken, user: userData } = res.data;
 
     localStorage.setItem('bankq_token', jwtToken);
@@ -42,8 +46,12 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  const register = async (name, email, password, role = 'CUSTOMER') => {
-    const res = await authApi.register({ name, email, password, role });
+  const register = async (name, email, password, role = 'CUSTOMER', bankName = '', accountNumber = '') => {
+    const payload = { name, email, password, role };
+    if (bankName) payload.bankName = bankName;
+    if (accountNumber) payload.accountNumber = accountNumber;
+
+    const res = await authApi.register(payload);
     const { token: jwtToken, user: userData } = res.data;
 
     localStorage.setItem('bankq_token', jwtToken);

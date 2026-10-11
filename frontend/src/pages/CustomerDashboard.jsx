@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { customerApi } from '../services/api';
 import TokenCard from '../components/TokenCard';
 import StatCard from '../components/StatCard';
-import { Ticket, Clock, MapPin, Users, PlusCircle, AlertCircle } from 'lucide-react';
+import { Ticket, Clock, MapPin, Users, PlusCircle, AlertCircle, Building2, CreditCard } from 'lucide-react';
 
 const CustomerDashboard = () => {
+  const { user } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,9 +43,24 @@ const CustomerDashboard = () => {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f2744' }}>
             {dashboard?.welcomeMessage || 'Customer Dashboard'}
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-            Monitor your live bank queues and active service tokens in real-time.
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
+            {user?.bankName && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
+                <Building2 size={13} />
+                {user.bankName}
+              </span>
+            )}
+            {user?.accountNumber ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 700, color: '#059669', background: '#dcfce7', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
+                <CreditCard size={13} />
+                A/C: {user.accountNumber}
+              </span>
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 600, color: '#d97706', background: '#fef3c7', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
+                New Customer (No Account Yet)
+              </span>
+            )}
+          </div>
         </div>
 
         <Link to="/request-token" className="btn-primary">
