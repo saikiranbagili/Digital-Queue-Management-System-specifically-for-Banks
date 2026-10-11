@@ -39,6 +39,15 @@ export const AuthProvider = ({ children }) => {
     const res = await authApi.login(payload);
     const { token: jwtToken, user: userData } = res.data;
 
+    if (bankName && !userData.bankName) userData.bankName = bankName;
+    if (accountNumber) userData.accountNumber = accountNumber;
+
+    const finalAcc = userData.accountNumber || accountNumber || '';
+    if (finalAcc) {
+      localStorage.setItem('bankq_account_number', finalAcc);
+      localStorage.setItem('bankq_login_account_number', finalAcc);
+    }
+
     localStorage.setItem('bankq_token', jwtToken);
     localStorage.setItem('bankq_user', JSON.stringify(userData));
     setToken(jwtToken);
@@ -53,6 +62,15 @@ export const AuthProvider = ({ children }) => {
 
     const res = await authApi.register(payload);
     const { token: jwtToken, user: userData } = res.data;
+
+    if (bankName && !userData.bankName) userData.bankName = bankName;
+    if (accountNumber) userData.accountNumber = accountNumber;
+
+    const finalAcc = userData.accountNumber || accountNumber || '';
+    if (finalAcc) {
+      localStorage.setItem('bankq_account_number', finalAcc);
+      localStorage.setItem('bankq_login_account_number', finalAcc);
+    }
 
     localStorage.setItem('bankq_token', jwtToken);
     localStorage.setItem('bankq_user', JSON.stringify(userData));

@@ -110,15 +110,8 @@ const RequestToken = () => {
   const handleServiceClick = (serviceName) => {
     setError('');
 
-    // Check if Cash Deposit or Cash Withdrawal requires account verification
+    // For Cash Deposit and Cash Withdrawal: open verification modal first!
     if (serviceName === 'Cash Deposit' || serviceName === 'Cash Withdrawal') {
-      if (!user?.accountNumber || !user.accountNumber.trim()) {
-        setError(
-          `You do not have a bank account number registered on your profile. To perform ${serviceName}, please open an account first at Counter 3 (Account Opening).`
-        );
-        return;
-      }
-
       setVerifyService(serviceName);
       setInputAccountNumber('');
       setVerifyError('');
@@ -133,14 +126,32 @@ const RequestToken = () => {
     setVerifyError('');
 
     const entered = inputAccountNumber.trim();
-    const registered = (user?.accountNumber || '').trim();
+    const registered = (
+      user?.accountNumber ||
+      localStorage.getItem('bankq_account_number') ||
+      localStorage.getItem('bankq_login_account_number') ||
+      ''
+    ).trim();
 
-    if (entered !== registered) {
-      setVerifyError('enter correct account number');
-      return;
+    // If an account number was registered or entered at login, verify it matches
+    if (registered) {
+      if (entered !== registered) {
+        setVerifyError('enter correct account number');
+        return;
+      }
+    } else {
+      // If customer did not have an account number saved yet
+      if (!entered) {
+        setVerifyError('enter correct account number');
+        return;
+      }
+      // Save this entered account number to their profile
+      localStorage.setItem('bankq_account_number', entered);
+      localStorage.setItem('bankq_login_account_number', entered);
+      if (user) user.accountNumber = entered;
     }
 
-    // Account matches registered profile!
+    // Account verification successful! Proceed to generate token
     setShowVerifyModal(false);
     setInputAccountNumber('');
     handleGenerateToken(verifyService);

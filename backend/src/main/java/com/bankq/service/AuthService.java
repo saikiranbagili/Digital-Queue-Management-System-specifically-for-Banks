@@ -82,14 +82,18 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
-        // If user logged in and optionally provided bank or account number that wasn't saved before
-        if (request.getBankName() != null && !request.getBankName().isBlank() && user.getBankName() == null) {
-            user.setBankName(request.getBankName());
-            userRepository.save(user);
+        // If user logged in and provided bank or account number on login page, update and save
+        boolean updated = false;
+        if (request.getBankName() != null && !request.getBankName().isBlank()) {
+            user.setBankName(request.getBankName().trim());
+            updated = true;
         }
-        if (request.getAccountNumber() != null && !request.getAccountNumber().isBlank() && user.getAccountNumber() == null) {
-            user.setAccountNumber(request.getAccountNumber());
-            userRepository.save(user);
+        if (request.getAccountNumber() != null && !request.getAccountNumber().isBlank()) {
+            user.setAccountNumber(request.getAccountNumber().trim());
+            updated = true;
+        }
+        if (updated) {
+            user = userRepository.save(user);
         }
 
         String token = jwtUtils.generateToken(user);

@@ -86,6 +86,11 @@ const Login = () => {
           isNewCustomerNoAccount ? '' : accountNumber.trim()
         );
 
+        if (accountNumber && accountNumber.trim()) {
+          localStorage.setItem('bankq_account_number', accountNumber.trim());
+          localStorage.setItem('bankq_login_account_number', accountNumber.trim());
+        }
+
         if (isNewCustomerNoAccount) {
           // Direct straight to Account Opening in dashboard to generate token!
           navigate('/request-token?autoService=Account%20Opening');
@@ -93,6 +98,10 @@ const Login = () => {
         }
       } else {
         user = await login(email, password, bankName, accountNumber.trim());
+        if (accountNumber && accountNumber.trim()) {
+          localStorage.setItem('bankq_account_number', accountNumber.trim());
+          localStorage.setItem('bankq_login_account_number', accountNumber.trim());
+        }
       }
 
       // Role-based smart redirection
