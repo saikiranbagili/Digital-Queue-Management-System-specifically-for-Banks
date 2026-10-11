@@ -51,6 +51,7 @@ public class AuthService {
                 encodedPassword,
                 role,
                 request.getBankName(),
+                request.getBranch(),
                 request.getAccountNumber()
         );
         user = userRepository.save(user);
@@ -62,6 +63,7 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 user.getBankName(),
+                user.getBranch(),
                 user.getAccountNumber(),
                 user.getCreatedAt()
         );
@@ -82,10 +84,14 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
-        // If user logged in and provided bank or account number on login page, update and save
+        // If user logged in and provided bank, branch or account number on login page, update and save
         boolean updated = false;
         if (request.getBankName() != null && !request.getBankName().isBlank()) {
             user.setBankName(request.getBankName().trim());
+            updated = true;
+        }
+        if (request.getBranch() != null && !request.getBranch().isBlank()) {
+            user.setBranch(request.getBranch().trim());
             updated = true;
         }
         if (request.getAccountNumber() != null && !request.getAccountNumber().isBlank()) {
@@ -103,6 +109,7 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 user.getBankName(),
+                user.getBranch(),
                 user.getAccountNumber(),
                 user.getCreatedAt()
         );
@@ -120,6 +127,7 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole(),
                 user.getBankName(),
+                user.getBranch(),
                 user.getAccountNumber(),
                 user.getCreatedAt()
         );

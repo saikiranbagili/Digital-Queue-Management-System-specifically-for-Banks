@@ -13,6 +13,8 @@ public class LoginRequest {
 
     private String bankName;
 
+    private String branch;
+
     private String accountNumber;
 
     public LoginRequest() {}
@@ -26,6 +28,14 @@ public class LoginRequest {
         this.email = email;
         this.password = password;
         this.bankName = bankName;
+        this.accountNumber = accountNumber;
+    }
+
+    public LoginRequest(String email, String password, String bankName, String branch, String accountNumber) {
+        this.email = email;
+        this.password = password;
+        this.bankName = bankName;
+        this.branch = branch;
         this.accountNumber = accountNumber;
     }
 
@@ -51,6 +61,14 @@ public class LoginRequest {
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public String getAccountNumber() {

@@ -37,8 +37,21 @@ public class QueueService {
 
     @Transactional
     public synchronized TokenResponse requestToken(User customer, String serviceName) {
+        return requestToken(customer, serviceName, null);
+    }
+
+    @Transactional
+    public synchronized TokenResponse requestToken(User customer, String serviceName, String branch) {
         BankingService service = serviceRepository.findByName(serviceName)
                 .orElseThrow(() -> new BadRequestException("Invalid banking service: " + serviceName));
+
+        // Effective branch and bank
+        String effectiveBranch = (branch != null && !branch.isBlank())
+                ? branch.trim()
+                : (customer.getBranch() != null && !customer.getBranch().isBlank() ? customer.getBranch().trim() : "Ameerpet");
+        String effectiveBank = (customer.getBankName() != null && !customer.getBankName().isBlank())
+                ? customer.getBankName().trim()
+                : "SBI";
 
         // Prevent customer from requesting another active token for the same service
         boolean hasWaiting = tokenRepository.existsByCustomerAndServiceNameAndStatus(customer, serviceName, TokenStatus.WAITING);
@@ -47,14 +60,16 @@ public class QueueService {
             throw new BadRequestException("You already have an active token for " + serviceName + ". Please wait until it is completed.");
         }
 
-        // Generate unique token number using service code and sequence count
-        long count = tokenRepository.countTokensByServiceCode(service.getCode());
+        // Generate branch-independent token number using service code and sequence count in that branch
+        long count = tokenRepository.countTokensByBranchAndServiceCode(effectiveBranch, service.getCode());
         String tokenNumber = String.format("%s-%03d", service.getCode(), count + 1);
 
         QueueToken token = new QueueToken(
                 tokenNumber,
                 service.getName(),
                 service.getCode(),
+                effectiveBank,
+                effectiveBranch,
                 customer,
                 service.getAssignedCounter()
         );
@@ -126,45 +141,59 @@ public class QueueService {
 
     @Transactional(readOnly = true)
     public StaffDashboardResponse getStaffDashboard() {
+        return getStaffDashboard(null);
+    }
+
+    @Transactional(readOnly = true)
+    public StaffDashboardResponse getStaffDashboard(String branch) {
         StaffDashboardResponse response = new StaffDashboardResponse();
-        response.setWaitingCount(tokenRepository.countByStatus(TokenStatus.WAITING));
-        response.setCalledCount(tokenRepository.countByStatus(TokenStatus.CALLED));
+        response.setWaitingCount(tokenRepository.countByStatusAndBranch(TokenStatus.WAITING, branch));
+        response.setCalledCount(tokenRepository.countByStatusAndBranch(TokenStatus.CALLED, branch));
 
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        response.setCompletedTodayCount(tokenRepository.countByStatusAndCompletedAtAfter(TokenStatus.COMPLETED, startOfDay));
+        response.setCompletedTodayCount(tokenRepository.countByStatusAndCompletedAtAfterAndBranch(TokenStatus.COMPLETED, startOfDay, branch));
 
         Map<String, Long> serviceCounts = new HashMap<>();
         List<BankingService> services = serviceRepository.findAll();
         for (BankingService s : services) {
-            long waitingForService = tokenRepository.countByServiceNameAndStatus(s.getName(), TokenStatus.WAITING);
+            long waitingForService = tokenRepository.countByServiceNameAndStatusAndBranch(s.getName(), TokenStatus.WAITING, branch);
             serviceCounts.put(s.getName(), waitingForService);
         }
         response.setCountsByService(serviceCounts);
 
-        // Find any currently called token
-        Optional<QueueToken> latestCalled = tokenRepository.findByStatusOrderByCreatedAtAsc(TokenStatus.CALLED)
-                .stream().findFirst();
-        latestCalled.ifPresent(token -> response.setCurrentlyServingToken(mapToTokenResponse(token)));
+        // Find any currently called token for this branch
+        List<QueueToken> called = tokenRepository.findCalledByBranchAndCounter(branch, null, TokenStatus.CALLED);
+        if (!called.isEmpty()) {
+            response.setCurrentlyServingToken(mapToTokenResponse(called.get(0)));
+        }
 
         return response;
     }
 
     @Transactional(readOnly = true)
     public List<TokenResponse> getStaffQueue(String serviceName) {
-        List<QueueToken> list;
-        if (serviceName != null && !serviceName.isBlank() && !serviceName.equalsIgnoreCase("all")) {
-            list = tokenRepository.findByServiceNameAndStatusOrderByCreatedAtAsc(serviceName, TokenStatus.WAITING);
-        } else {
-            list = tokenRepository.findByStatusOrderByCreatedAtAsc(TokenStatus.WAITING);
-        }
+        return getStaffQueue(serviceName, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TokenResponse> getStaffQueue(String serviceName, String branch) {
+        String filterService = (serviceName != null && !serviceName.isBlank() && !serviceName.equalsIgnoreCase("all")) ? serviceName : null;
+        String filterBranch = (branch != null && !branch.isBlank() && !branch.equalsIgnoreCase("all")) ? branch : null;
+        List<QueueToken> list = tokenRepository.findWaitingByBranchAndService(filterBranch, filterService, TokenStatus.WAITING);
         return list.stream().map(this::mapToTokenResponse).collect(Collectors.toList());
     }
 
     @Transactional
     public synchronized TokenResponse callNext(String serviceName, String counterName) {
-        List<QueueToken> waitingTokens = tokenRepository.findByServiceNameAndStatusOrderByCreatedAtAsc(serviceName, TokenStatus.WAITING);
+        return callNext(serviceName, counterName, null);
+    }
+
+    @Transactional
+    public synchronized TokenResponse callNext(String serviceName, String counterName, String branch) {
+        String filterBranch = (branch != null && !branch.isBlank() && !branch.equalsIgnoreCase("all")) ? branch : null;
+        List<QueueToken> waitingTokens = tokenRepository.findWaitingByBranchAndService(filterBranch, serviceName, TokenStatus.WAITING);
         if (waitingTokens.isEmpty()) {
-            throw new BadRequestException("No waiting tokens available for service: " + serviceName);
+            throw new BadRequestException("No waiting tokens available for service: " + serviceName + (filterBranch != null ? " at " + filterBranch + " branch" : ""));
         }
 
         QueueToken nextToken = waitingTokens.get(0);
@@ -216,8 +245,14 @@ public class QueueService {
 
     @Transactional(readOnly = true)
     public List<TokenResponse> getAdminTokens(String serviceName, TokenStatus status) {
+        return getAdminTokens(serviceName, status, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TokenResponse> getAdminTokens(String serviceName, TokenStatus status, String branch) {
         String filterService = (serviceName != null && !serviceName.isBlank() && !serviceName.equalsIgnoreCase("all")) ? serviceName : null;
-        return tokenRepository.findWithFilters(filterService, status)
+        String filterBranch = (branch != null && !branch.isBlank() && !branch.equalsIgnoreCase("all")) ? branch : null;
+        return tokenRepository.findWithBranchFilters(filterService, status, filterBranch)
                 .stream()
                 .map(this::mapToTokenResponse)
                 .collect(Collectors.toList());
@@ -226,7 +261,7 @@ public class QueueService {
     @Transactional(readOnly = true)
     public List<UserResponse> getAdminUsers() {
         return userRepository.findAll().stream()
-                .map(u -> new UserResponse(u.getId(), u.getName(), u.getEmail(), u.getRole(), u.getCreatedAt()))
+                .map(u -> new UserResponse(u.getId(), u.getName(), u.getEmail(), u.getRole(), u.getBankName(), u.getBranch(), u.getAccountNumber(), u.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -246,6 +281,8 @@ public class QueueService {
         resp.setTokenNumber(token.getTokenNumber());
         resp.setServiceName(token.getServiceName());
         resp.setServiceCode(token.getServiceCode());
+        resp.setBankName(token.getBankName());
+        resp.setBranch(token.getBranch());
         resp.setStatus(token.getStatus());
         resp.setCounterName(token.getCounterName());
         resp.setCreatedAt(token.getCreatedAt());
@@ -257,10 +294,10 @@ public class QueueService {
             resp.setCustomerEmail(token.getCustomer().getEmail());
         }
 
-        // Calculate queue position and people ahead
+        // Calculate queue position and people ahead strictly within that branch
         if (token.getStatus() == TokenStatus.WAITING) {
-            long peopleAhead = tokenRepository.countByServiceNameAndStatusAndCreatedAtBefore(
-                    token.getServiceName(), TokenStatus.WAITING, token.getCreatedAt()
+            long peopleAhead = tokenRepository.countPeopleAheadInBranch(
+                    token.getBranch(), token.getServiceName(), TokenStatus.WAITING, token.getCreatedAt()
             );
             resp.setPeopleAhead((int) peopleAhead);
             resp.setQueuePosition((int) peopleAhead + 1);
@@ -279,11 +316,11 @@ public class QueueService {
             resp.setEstimatedWaitMinutes(0);
         }
 
-        // Find currently serving token for this counter
-        Optional<QueueToken> serving = tokenRepository.findTopByCounterNameAndStatusOrderByCalledAtDesc(
-                token.getCounterName(), TokenStatus.CALLED
+        // Find currently serving token for this branch and counter
+        List<QueueToken> serving = tokenRepository.findCalledByBranchAndCounter(
+                token.getBranch(), token.getCounterName(), TokenStatus.CALLED
         );
-        resp.setCurrentlyServingToken(serving.map(QueueToken::getTokenNumber).orElse("None"));
+        resp.setCurrentlyServingToken(!serving.isEmpty() ? serving.get(0).getTokenNumber() : "None");
 
         return resp;
     }

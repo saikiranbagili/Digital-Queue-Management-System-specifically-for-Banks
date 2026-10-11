@@ -32,8 +32,9 @@ public class AdminController {
     @GetMapping("/tokens")
     public ResponseEntity<List<TokenResponse>> getTokens(
             @RequestParam(required = false) String serviceName,
-            @RequestParam(required = false) TokenStatus status) {
-        return ResponseEntity.ok(queueService.getAdminTokens(serviceName, status));
+            @RequestParam(required = false) TokenStatus status,
+            @RequestParam(required = false) String branch) {
+        return ResponseEntity.ok(queueService.getAdminTokens(serviceName, status, branch));
     }
 
     @GetMapping("/users")

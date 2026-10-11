@@ -29,6 +29,9 @@ public class User {
     @Column(name = "bank_name")
     private String bankName;
 
+    @Column(name = "branch")
+    private String branch;
+
     @Column(name = "account_number")
     private String accountNumber;
 
@@ -51,6 +54,17 @@ public class User {
         this.passwordHash = passwordHash;
         this.role = role;
         this.bankName = bankName;
+        this.accountNumber = accountNumber;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public User(String name, String email, String passwordHash, Role role, String bankName, String branch, String accountNumber) {
+        this.name = name;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.role = role;
+        this.bankName = bankName;
+        this.branch = branch;
         this.accountNumber = accountNumber;
         this.createdAt = LocalDateTime.now();
     }
@@ -101,6 +115,14 @@ public class User {
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public String getAccountNumber() {

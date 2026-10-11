@@ -67,17 +67,17 @@ export const authApi = {
 
 export const customerApi = {
   getDashboard: () => api.get('/customer/dashboard'),
-  requestToken: (serviceName) => api.post('/customer/tokens', { serviceName }),
+  requestToken: (serviceName, branch = '') => api.post('/customer/tokens', { serviceName, branch: branch || undefined }),
   getMyTokens: () => api.get('/customer/tokens'),
   getTokenById: (id) => api.get(`/customer/tokens/${id}`),
   getTokenStatus: (id) => api.get(`/customer/tokens/${id}/status`),
 };
 
 export const staffApi = {
-  getDashboard: () => api.get('/staff/dashboard'),
-  getQueue: (serviceName) => api.get('/staff/queue', { params: { serviceName } }),
-  callNext: (serviceName, counterName) =>
-    api.post('/staff/queue/call-next', { serviceName, counterName }),
+  getDashboard: (branch = '') => api.get('/staff/dashboard', { params: { branch: branch || undefined } }),
+  getQueue: (serviceName, branch = '') => api.get('/staff/queue', { params: { serviceName: serviceName || undefined, branch: branch || undefined } }),
+  callNext: (serviceName, counterName, branch = '') =>
+    api.post('/staff/queue/call-next', { serviceName, counterName, branch: branch || undefined }),
   completeToken: (id) => api.post(`/staff/tokens/${id}/complete`),
 };
 

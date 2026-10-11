@@ -24,12 +24,25 @@ const SERVICES = [
 
 const COUNTERS = ['Counter 1', 'Counter 2', 'Counter 3'];
 
+export const ALL_BRANCHES = [
+  { bank: 'SBI', branch: 'Ameerpet' },
+  { bank: 'SBI', branch: 'Kukatpally' },
+  { bank: 'SBI', branch: 'Secunderabad' },
+  { bank: 'HDFC Bank', branch: 'Madhapur' },
+  { bank: 'HDFC Bank', branch: 'Gachibowli' },
+  { bank: 'HDFC Bank', branch: 'Begumpet' },
+  { bank: 'ICICI Bank', branch: 'Banjara Hills' },
+  { bank: 'ICICI Bank', branch: 'Miyapur' },
+  { bank: 'ICICI Bank', branch: 'Dilsukhnagar' }
+];
+
 const StaffQueue = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialService = searchParams.get('service') || 'Cash Deposit';
 
   const [selectedService, setSelectedService] = useState(initialService);
   const [selectedCounter, setSelectedCounter] = useState('Counter 1');
+  const [selectedBranch, setSelectedBranch] = useState(localStorage.getItem('bankq_branch') || 'all');
   const [waitingQueue, setWaitingQueue] = useState([]);
   const [currentlyServing, setCurrentlyServing] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,12 +54,13 @@ const StaffQueue = () => {
   const loadQueueData = async () => {
     try {
       setError('');
-      // Load waiting queue for selected service
-      const resQueue = await staffApi.getQueue(selectedService);
+      const branchParam = selectedBranch === 'all' ? '' : selectedBranch;
+      // Load waiting queue for selected service and branch
+      const resQueue = await staffApi.getQueue(selectedService, branchParam);
       setWaitingQueue(resQueue.data);
 
-      // Also check staff dashboard for any currently called token
-      const resDash = await staffApi.getDashboard();
+      // Also check staff dashboard for any currently called token in branch
+      const resDash = await staffApi.getDashboard(branchParam);
       if (resDash.data.currentlyServingToken) {
         setCurrentlyServing(resDash.data.currentlyServingToken);
       } else {
@@ -61,7 +75,7 @@ const StaffQueue = () => {
 
   useEffect(() => {
     loadQueueData();
-  }, [selectedService]);
+  }, [selectedService, selectedBranch]);
 
   const handleCallNext = async () => {
     setError('');
@@ -69,9 +83,10 @@ const StaffQueue = () => {
     setCallingNext(true);
 
     try {
-      const res = await staffApi.callNext(selectedService, selectedCounter);
+      const branchParam = selectedBranch === 'all' ? '' : selectedBranch;
+      const res = await staffApi.callNext(selectedService, selectedCounter, branchParam);
       setCurrentlyServing(res.data);
-      setSuccessMsg(`Called token ${res.data.tokenNumber} to ${selectedCounter}!`);
+      setSuccessMsg(`Called token ${res.data.tokenNumber} to ${selectedCounter} (${res.data.branch || 'Main Branch'})!`);
       await loadQueueData();
     } catch (err) {
       setError(err.message || 'Failed to call next token');
@@ -131,9 +146,27 @@ const StaffQueue = () => {
         </div>
       )}
 
-      {/* Control Bar: Service and Counter Selector */}
+      {/* Control Bar: Service, Branch, and Counter Selector */}
       <div className="table-card" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f2744', marginBottom: '0.35rem' }}>
+              Select Bank & Branch
+            </label>
+            <select
+              className="form-input"
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+            >
+              <option value="all">🏢 All Branches (Overview)</option>
+              {ALL_BRANCHES.map((b) => (
+                <option key={b.branch} value={b.branch}>
+                  {b.bank} — {b.branch} Branch
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f2744', marginBottom: '0.35rem' }}>
               Select Banking Service
@@ -271,6 +304,7 @@ const StaffQueue = () => {
                 <tr>
                   <th>Queue #</th>
                   <th>Token #</th>
+                  <th>Branch</th>
                   <th>Customer</th>
                   <th>Arrival Time</th>
                   <th>People Ahead</th>
@@ -287,6 +321,11 @@ const StaffQueue = () => {
                     <td>
                       <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0284c7' }}>
                         {t.tokenNumber}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        {t.branch || 'Ameerpet'}
                       </span>
                     </td>
                     <td>

@@ -25,6 +25,7 @@ const AdminDashboard = () => {
 
   const [serviceFilter, setServiceFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [branchFilter, setBranchFilter] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ const AdminDashboard = () => {
       setError('');
       const [dashRes, tokensRes, usersRes, servicesRes, countersRes] = await Promise.all([
         adminApi.getDashboard(),
-        adminApi.getTokens({ serviceName: serviceFilter, status: statusFilter }),
+        adminApi.getTokens({ serviceName: serviceFilter, status: statusFilter, branch: branchFilter }),
         adminApi.getUsers(),
         adminApi.getServices(),
         adminApi.getCounters()
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchAdminData();
-  }, [serviceFilter, statusFilter]);
+  }, [serviceFilter, statusFilter, branchFilter]);
 
   return (
     <div>
@@ -220,6 +221,24 @@ const AdminDashboard = () => {
                 <option value="CALLED">CALLED</option>
                 <option value="COMPLETED">COMPLETED</option>
               </select>
+
+              <select
+                className="form-input"
+                style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', width: 'auto' }}
+                value={branchFilter}
+                onChange={(e) => setBranchFilter(e.target.value)}
+              >
+                <option value="">All Branches</option>
+                <option value="Ameerpet">SBI — Ameerpet</option>
+                <option value="Kukatpally">SBI — Kukatpally</option>
+                <option value="Secunderabad">SBI — Secunderabad</option>
+                <option value="Madhapur">HDFC Bank — Madhapur</option>
+                <option value="Gachibowli">HDFC Bank — Gachibowli</option>
+                <option value="Begumpet">HDFC Bank — Begumpet</option>
+                <option value="Banjara Hills">ICICI Bank — Banjara Hills</option>
+                <option value="Miyapur">ICICI Bank — Miyapur</option>
+                <option value="Dilsukhnagar">ICICI Bank — Dilsukhnagar</option>
+              </select>
             </div>
           </div>
 
@@ -228,6 +247,7 @@ const AdminDashboard = () => {
               <thead>
                 <tr>
                   <th>Token #</th>
+                  <th>Branch</th>
                   <th>Service</th>
                   <th>Customer</th>
                   <th>Counter Desk</th>
@@ -239,7 +259,7 @@ const AdminDashboard = () => {
               <tbody>
                 {tokens.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                       No tokens match the selected filters.
                     </td>
                   </tr>
@@ -249,6 +269,11 @@ const AdminDashboard = () => {
                       <td>
                         <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0284c7' }}>
                           {t.tokenNumber}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                          {t.branch || 'Ameerpet'}
                         </span>
                       </td>
                       <td><strong>{t.serviceName}</strong></td>
@@ -288,6 +313,8 @@ const AdminDashboard = () => {
                   <th>ID</th>
                   <th>Full Name</th>
                   <th>Email</th>
+                  <th>Bank & Branch</th>
+                  <th>Account Number</th>
                   <th>Role</th>
                   <th>Member Since</th>
                 </tr>
@@ -298,6 +325,17 @@ const AdminDashboard = () => {
                     <td>#{u.id}</td>
                     <td><strong>{u.name}</strong></td>
                     <td>{u.email}</td>
+                    <td>
+                      <div style={{ fontSize: '0.8rem' }}>
+                        <span style={{ fontWeight: 700, color: '#0284c7' }}>{u.bankName || 'SBI'}</span>
+                        <div style={{ color: '#7c3aed', fontWeight: 600 }}>{u.branch ? `${u.branch} Branch` : 'Ameerpet Branch'}</div>
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: u.accountNumber ? '#059669' : '#94a3b8' }}>
+                        {u.accountNumber || '— (New Customer)'}
+                      </span>
+                    </td>
                     <td>
                       <span className={`badge ${u.role === 'ADMIN' ? 'badge-called' : u.role === 'STAFF' ? 'badge-waiting' : 'badge-completed'}`}>
                         {u.role}

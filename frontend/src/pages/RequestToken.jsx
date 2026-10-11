@@ -89,7 +89,8 @@ const RequestToken = () => {
     setSubmittingService(serviceName);
 
     try {
-      const res = await customerApi.requestToken(serviceName);
+      const branch = user?.branch || localStorage.getItem('bankq_branch') || '';
+      const res = await customerApi.requestToken(serviceName, branch);
       setGeneratedToken(res.data);
     } catch (err) {
       setError(err.message || 'Failed to request token');
@@ -167,22 +168,40 @@ const RequestToken = () => {
           </p>
         </div>
 
-        {user?.bankName && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background: '#e0f2fe',
-            color: '#0369a1',
-            padding: '0.4rem 0.85rem',
-            borderRadius: '9999px',
-            fontSize: '0.85rem',
-            fontWeight: 700
-          }}>
-            <Building2 size={15} />
-            <span>{user.bankName}</span>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {(user?.bankName || localStorage.getItem('bankq_bank_name')) && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#e0f2fe',
+              color: '#0369a1',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '9999px',
+              fontSize: '0.85rem',
+              fontWeight: 700
+            }}>
+              <Building2 size={15} />
+              <span>{user?.bankName || localStorage.getItem('bankq_bank_name')}</span>
+            </div>
+          )}
+          {(user?.branch || localStorage.getItem('bankq_branch')) && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#f3e8ff',
+              color: '#7c3aed',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '9999px',
+              fontSize: '0.85rem',
+              fontWeight: 700
+            }}>
+              <MapPin size={15} />
+              <span>{user?.branch || localStorage.getItem('bankq_branch')} Branch</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (

@@ -50,6 +50,12 @@ const CustomerDashboard = () => {
                 {user.bankName}
               </span>
             )}
+            {user?.branch && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
+                <MapPin size={13} />
+                {user.branch} Branch
+              </span>
+            )}
             {user?.accountNumber ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 700, color: '#059669', background: '#dcfce7', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
                 <CreditCard size={13} />

@@ -6,13 +6,15 @@ import { Clock, Bell, CheckCircle2, Layers, ArrowRight, RefreshCw, AlertCircle }
 
 const StaffDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState(localStorage.getItem('bankq_branch') || 'all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchDashboard = async () => {
     try {
       setError('');
-      const res = await staffApi.getDashboard();
+      const branchParam = selectedBranch === 'all' ? '' : selectedBranch;
+      const res = await staffApi.getDashboard(branchParam);
       setDashboard(res.data);
     } catch (err) {
       setError(err.message || 'Failed to load staff dashboard');
@@ -23,7 +25,7 @@ const StaffDashboard = () => {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [selectedBranch]);
 
   return (
     <div>
@@ -35,12 +37,29 @@ const StaffDashboard = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <select
+            className="form-input"
+            style={{ width: 'auto', minWidth: '220px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+          >
+            <option value="all">🏢 All Branches Overview</option>
+            <option value="Ameerpet">SBI — Ameerpet</option>
+            <option value="Kukatpally">SBI — Kukatpally</option>
+            <option value="Secunderabad">SBI — Secunderabad</option>
+            <option value="Madhapur">HDFC Bank — Madhapur</option>
+            <option value="Gachibowli">HDFC Bank — Gachibowli</option>
+            <option value="Begumpet">HDFC Bank — Begumpet</option>
+            <option value="Banjara Hills">ICICI Bank — Banjara Hills</option>
+            <option value="Miyapur">ICICI Bank — Miyapur</option>
+            <option value="Dilsukhnagar">ICICI Bank — Dilsukhnagar</option>
+          </select>
           <button className="btn-outline" onClick={fetchDashboard}>
             <RefreshCw size={16} />
             <span>Sync Stats</span>
           </button>
-          <Link to="/staff/queue" className="btn-primary">
+          <Link to={`/staff/queue?branch=${selectedBranch}`} className="btn-primary">
             <Layers size={18} />
             <span>Open Counter Desk</span>
           </Link>

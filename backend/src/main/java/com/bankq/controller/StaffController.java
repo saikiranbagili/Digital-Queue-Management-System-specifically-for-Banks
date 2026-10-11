@@ -23,18 +23,20 @@ public class StaffController {
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<StaffDashboardResponse> getDashboard() {
-        return ResponseEntity.ok(queueService.getStaffDashboard());
+    public ResponseEntity<StaffDashboardResponse> getDashboard(@RequestParam(required = false) String branch) {
+        return ResponseEntity.ok(queueService.getStaffDashboard(branch));
     }
 
     @GetMapping("/queue")
-    public ResponseEntity<List<TokenResponse>> getQueue(@RequestParam(required = false) String serviceName) {
-        return ResponseEntity.ok(queueService.getStaffQueue(serviceName));
+    public ResponseEntity<List<TokenResponse>> getQueue(
+            @RequestParam(required = false) String serviceName,
+            @RequestParam(required = false) String branch) {
+        return ResponseEntity.ok(queueService.getStaffQueue(serviceName, branch));
     }
 
     @PostMapping("/queue/call-next")
     public ResponseEntity<TokenResponse> callNext(@Valid @RequestBody CallNextRequest request) {
-        TokenResponse response = queueService.callNext(request.getServiceName(), request.getCounterName());
+        TokenResponse response = queueService.callNext(request.getServiceName(), request.getCounterName(), request.getBranch());
         return ResponseEntity.ok(response);
     }
 

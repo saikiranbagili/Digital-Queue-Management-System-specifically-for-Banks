@@ -37,7 +37,7 @@ public class CustomerController {
     public ResponseEntity<TokenResponse> requestToken(@Valid @RequestBody TokenRequest request,
                                                       Authentication authentication) {
         User customer = authService.getUserByEmail(authentication.getName());
-        TokenResponse response = queueService.requestToken(customer, request.getServiceName());
+        TokenResponse response = queueService.requestToken(customer, request.getServiceName(), request.getBranch());
         return ResponseEntity.ok(response);
     }
 

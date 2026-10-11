@@ -9,6 +9,7 @@ public class UserResponse {
     private String email;
     private Role role;
     private String bankName;
+    private String branch;
     private String accountNumber;
     private LocalDateTime createdAt;
 
@@ -28,6 +29,17 @@ public class UserResponse {
         this.email = email;
         this.role = role;
         this.bankName = bankName;
+        this.accountNumber = accountNumber;
+        this.createdAt = createdAt;
+    }
+
+    public UserResponse(Long id, String name, String email, Role role, String bankName, String branch, String accountNumber, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.bankName = bankName;
+        this.branch = branch;
         this.accountNumber = accountNumber;
         this.createdAt = createdAt;
     }
@@ -70,6 +82,14 @@ public class UserResponse {
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public String getAccountNumber() {

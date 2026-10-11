@@ -31,16 +31,25 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = async (email, password, bankName = '', accountNumber = '') => {
+  const login = async (email, password, bankName = '', branch = '', accountNumber = '') => {
     const payload = { email, password };
     if (bankName) payload.bankName = bankName;
+    if (branch) payload.branch = branch;
     if (accountNumber) payload.accountNumber = accountNumber;
 
     const res = await authApi.login(payload);
     const { token: jwtToken, user: userData } = res.data;
 
     if (bankName && !userData.bankName) userData.bankName = bankName;
+    if (branch && !userData.branch) userData.branch = branch;
     if (accountNumber) userData.accountNumber = accountNumber;
+
+    if (userData.branch) {
+      localStorage.setItem('bankq_branch', userData.branch);
+    }
+    if (userData.bankName) {
+      localStorage.setItem('bankq_bank_name', userData.bankName);
+    }
 
     const finalAcc = userData.accountNumber || accountNumber || '';
     if (finalAcc) {
@@ -55,16 +64,25 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  const register = async (name, email, password, role = 'CUSTOMER', bankName = '', accountNumber = '') => {
+  const register = async (name, email, password, role = 'CUSTOMER', bankName = '', branch = '', accountNumber = '') => {
     const payload = { name, email, password, role };
     if (bankName) payload.bankName = bankName;
+    if (branch) payload.branch = branch;
     if (accountNumber) payload.accountNumber = accountNumber;
 
     const res = await authApi.register(payload);
     const { token: jwtToken, user: userData } = res.data;
 
     if (bankName && !userData.bankName) userData.bankName = bankName;
+    if (branch && !userData.branch) userData.branch = branch;
     if (accountNumber) userData.accountNumber = accountNumber;
+
+    if (userData.branch) {
+      localStorage.setItem('bankq_branch', userData.branch);
+    }
+    if (userData.bankName) {
+      localStorage.setItem('bankq_bank_name', userData.bankName);
+    }
 
     const finalAcc = userData.accountNumber || accountNumber || '';
     if (finalAcc) {

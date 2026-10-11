@@ -22,6 +22,8 @@ public class RegisterRequest {
 
     private String bankName;
 
+    private String branch;
+
     private String accountNumber;
 
     public RegisterRequest() {}
@@ -39,6 +41,16 @@ public class RegisterRequest {
         this.password = password;
         this.role = role;
         this.bankName = bankName;
+        this.accountNumber = accountNumber;
+    }
+
+    public RegisterRequest(String name, String email, String password, Role role, String bankName, String branch, String accountNumber) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.bankName = bankName;
+        this.branch = branch;
         this.accountNumber = accountNumber;
     }
 
@@ -80,6 +92,14 @@ public class RegisterRequest {
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public String getAccountNumber() {

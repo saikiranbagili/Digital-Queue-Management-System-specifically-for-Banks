@@ -8,6 +8,8 @@ public class TokenResponse {
     private String tokenNumber;
     private String serviceName;
     private String serviceCode;
+    private String bankName;
+    private String branch;
     private TokenStatus status;
     private String counterName;
     private int queuePosition;
@@ -52,6 +54,22 @@ public class TokenResponse {
 
     public void setServiceCode(String serviceCode) {
         this.serviceCode = serviceCode;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public TokenStatus getStatus() {

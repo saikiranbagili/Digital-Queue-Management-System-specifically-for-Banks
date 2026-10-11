@@ -8,11 +8,19 @@ public class CallNextRequest {
 
     private String counterName;
 
+    private String branch;
+
     public CallNextRequest() {}
 
     public CallNextRequest(String serviceName, String counterName) {
         this.serviceName = serviceName;
         this.counterName = counterName;
+    }
+
+    public CallNextRequest(String serviceName, String counterName, String branch) {
+        this.serviceName = serviceName;
+        this.counterName = counterName;
+        this.branch = branch;
     }
 
     public String getServiceName() {
@@ -29,5 +37,13 @@ public class CallNextRequest {
 
     public void setCounterName(String counterName) {
         this.counterName = counterName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 }

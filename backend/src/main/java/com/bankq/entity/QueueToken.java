@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
 @Table(name = "queue_tokens", indexes = {
     @Index(name = "idx_token_service_status", columnList = "serviceName, status"),
     @Index(name = "idx_token_status", columnList = "status"),
-    @Index(name = "idx_token_number", columnList = "tokenNumber")
+    @Index(name = "idx_token_number", columnList = "tokenNumber"),
+    @Index(name = "idx_token_branch", columnList = "branch")
 })
 public class QueueToken {
 
@@ -15,7 +16,7 @@ public class QueueToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(nullable = false, length = 30)
     private String tokenNumber;
 
     @Column(nullable = false)
@@ -23,6 +24,12 @@ public class QueueToken {
 
     @Column(nullable = false, length = 10)
     private String serviceCode;
+
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "branch")
+    private String branch;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,6 +55,18 @@ public class QueueToken {
         this.tokenNumber = tokenNumber;
         this.serviceName = serviceName;
         this.serviceCode = serviceCode;
+        this.customer = customer;
+        this.counterName = counterName;
+        this.status = TokenStatus.WAITING;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public QueueToken(String tokenNumber, String serviceName, String serviceCode, String bankName, String branch, User customer, String counterName) {
+        this.tokenNumber = tokenNumber;
+        this.serviceName = serviceName;
+        this.serviceCode = serviceCode;
+        this.bankName = bankName;
+        this.branch = branch;
         this.customer = customer;
         this.counterName = counterName;
         this.status = TokenStatus.WAITING;
@@ -84,6 +103,22 @@ public class QueueToken {
 
     public void setServiceCode(String serviceCode) {
         this.serviceCode = serviceCode;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public TokenStatus getStatus() {

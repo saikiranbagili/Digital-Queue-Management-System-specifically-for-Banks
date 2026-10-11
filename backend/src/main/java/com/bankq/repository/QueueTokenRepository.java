@@ -42,8 +42,32 @@ public interface QueueTokenRepository extends JpaRepository<QueueToken, Long> {
 
     Optional<QueueToken> findTopByServiceNameAndStatusOrderByCalledAtDesc(String serviceName, TokenStatus status);
 
+    @Query("SELECT COUNT(q) FROM QueueToken q WHERE q.serviceCode = :serviceCode AND (:branch IS NULL OR q.branch = :branch)")
+    long countTokensByBranchAndServiceCode(@Param("branch") String branch, @Param("serviceCode") String serviceCode);
+
     @Query("SELECT COUNT(q) FROM QueueToken q WHERE q.serviceCode = :serviceCode")
     long countTokensByServiceCode(@Param("serviceCode") String serviceCode);
+
+    @Query("SELECT COUNT(q) FROM QueueToken q WHERE q.serviceName = :serviceName AND q.status = :status AND q.createdAt < :createdAt AND (:branch IS NULL OR q.branch = :branch)")
+    long countPeopleAheadInBranch(@Param("branch") String branch, @Param("serviceName") String serviceName, @Param("status") TokenStatus status, @Param("createdAt") LocalDateTime createdAt);
+
+    @Query("SELECT q FROM QueueToken q WHERE q.status = :status AND (:counterName IS NULL OR q.counterName = :counterName) AND (:branch IS NULL OR q.branch = :branch) ORDER BY q.calledAt DESC")
+    List<QueueToken> findCalledByBranchAndCounter(@Param("branch") String branch, @Param("counterName") String counterName, @Param("status") TokenStatus status);
+
+    @Query("SELECT q FROM QueueToken q WHERE q.status = :status AND (:serviceName IS NULL OR q.serviceName = :serviceName) AND (:branch IS NULL OR q.branch = :branch) ORDER BY q.createdAt ASC")
+    List<QueueToken> findWaitingByBranchAndService(@Param("branch") String branch, @Param("serviceName") String serviceName, @Param("status") TokenStatus status);
+
+    @Query("SELECT COUNT(q) FROM QueueToken q WHERE q.status = :status AND (:branch IS NULL OR q.branch = :branch)")
+    long countByStatusAndBranch(@Param("status") TokenStatus status, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(q) FROM QueueToken q WHERE q.serviceName = :serviceName AND q.status = :status AND (:branch IS NULL OR q.branch = :branch)")
+    long countByServiceNameAndStatusAndBranch(@Param("serviceName") String serviceName, @Param("status") TokenStatus status, @Param("branch") String branch);
+
+    @Query("SELECT COUNT(q) FROM QueueToken q WHERE q.status = :status AND q.completedAt > :time AND (:branch IS NULL OR q.branch = :branch)")
+    long countByStatusAndCompletedAtAfterAndBranch(@Param("status") TokenStatus status, @Param("time") LocalDateTime time, @Param("branch") String branch);
+
+    @Query("SELECT q FROM QueueToken q WHERE (:serviceName IS NULL OR q.serviceName = :serviceName) AND (:status IS NULL OR q.status = :status) AND (:branch IS NULL OR q.branch = :branch) ORDER BY q.createdAt DESC")
+    List<QueueToken> findWithBranchFilters(@Param("serviceName") String serviceName, @Param("status") TokenStatus status, @Param("branch") String branch);
 
     @Query("SELECT q FROM QueueToken q WHERE (:serviceName IS NULL OR q.serviceName = :serviceName) AND (:status IS NULL OR q.status = :status) ORDER BY q.createdAt DESC")
     List<QueueToken> findWithFilters(@Param("serviceName") String serviceName, @Param("status") TokenStatus status);

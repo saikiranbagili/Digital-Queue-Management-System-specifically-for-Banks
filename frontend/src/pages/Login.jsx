@@ -13,30 +13,25 @@ import {
   LogIn, 
   CheckCircle2,
   CreditCard,
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 
-export const BANK_OPTIONS = [
-  'State Bank of India (SBI)',
-  'HDFC Bank',
-  'ICICI Bank',
-  'Axis Bank',
-  'Punjab National Bank (PNB)',
-  'Bank of Baroda (BOB)',
-  'Canara Bank',
-  'Union Bank of India',
-  'Kotak Mahindra Bank',
-  'Bank of India',
-  'IndusInd Bank',
-  'Federal Bank'
-];
+export const BANK_BRANCHES = {
+  'SBI': ['Ameerpet', 'Kukatpally', 'Secunderabad'],
+  'HDFC Bank': ['Madhapur', 'Gachibowli', 'Begumpet'],
+  'ICICI Bank': ['Banjara Hills', 'Miyapur', 'Dilsukhnagar']
+};
+
+export const BANK_OPTIONS = ['SBI', 'HDFC Bank', 'ICICI Bank'];
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [bankName, setBankName] = useState('State Bank of India (SBI)');
+  const [bankName, setBankName] = useState('SBI');
+  const [branch, setBranch] = useState('Ameerpet');
   const [accountNumber, setAccountNumber] = useState('');
   const [isNewCustomerNoAccount, setIsNewCustomerNoAccount] = useState(false);
 
@@ -52,6 +47,14 @@ const Login = () => {
     healthApi.check().catch(() => {});
   }, []);
 
+  const handleBankChange = (selectedBank) => {
+    setBankName(selectedBank);
+    const availableBranches = BANK_BRANCHES[selectedBank] || [];
+    if (availableBranches.length > 0) {
+      setBranch(availableBranches[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -62,7 +65,10 @@ const Login = () => {
       let user;
       if (isSignUp) {
         if (!bankName) {
-          throw new Error('Please select your bank from the list');
+          throw new Error('Please select your bank');
+        }
+        if (!branch) {
+          throw new Error('Please select your branch');
         }
         if (!name.trim()) {
           throw new Error('Please enter your full name');
@@ -82,22 +88,27 @@ const Login = () => {
           email, 
           password, 
           'CUSTOMER', 
-          bankName, 
+          bankName,
+          branch,
           isNewCustomerNoAccount ? '' : accountNumber.trim()
         );
 
+        localStorage.setItem('bankq_bank_name', bankName);
+        localStorage.setItem('bankq_branch', branch);
         if (accountNumber && accountNumber.trim()) {
           localStorage.setItem('bankq_account_number', accountNumber.trim());
           localStorage.setItem('bankq_login_account_number', accountNumber.trim());
         }
 
         if (isNewCustomerNoAccount) {
-          // Direct straight to Account Opening in dashboard to generate token!
+          // Direct straight to Account Opening in dashboard to generate token for this branch!
           navigate('/request-token?autoService=Account%20Opening');
           return;
         }
       } else {
-        user = await login(email, password, bankName, accountNumber.trim());
+        user = await login(email, password, bankName, branch, accountNumber.trim());
+        localStorage.setItem('bankq_bank_name', bankName);
+        localStorage.setItem('bankq_branch', branch);
         if (accountNumber && accountNumber.trim()) {
           localStorage.setItem('bankq_account_number', accountNumber.trim());
           localStorage.setItem('bankq_login_account_number', accountNumber.trim());
@@ -218,11 +229,30 @@ const Login = () => {
               id="bankSelect"
               className="form-input"
               value={bankName}
-              onChange={(e) => setBankName(e.target.value)}
+              onChange={(e) => handleBankChange(e.target.value)}
               required
             >
               {BANK_OPTIONS.map((b) => (
                 <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Branch Selection Dropdown (Dynamically populated from selected bank) */}
+          <div className="form-group">
+            <label htmlFor="branchSelect" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <MapPin size={15} color="#0284c7" />
+              <span>Select Branch ({bankName})</span>
+            </label>
+            <select
+              id="branchSelect"
+              className="form-input"
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+              required
+            >
+              {(BANK_BRANCHES[bankName] || []).map((br) => (
+                <option key={br} value={br}>{br}</option>
               ))}
             </select>
           </div>

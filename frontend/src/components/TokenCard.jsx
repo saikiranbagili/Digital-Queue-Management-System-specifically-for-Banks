@@ -15,6 +15,13 @@ const TokenCard = ({ token, onRefresh, showTrackLink = true }) => {
           </span>
           <div className="token-badge-large">{token.tokenNumber}</div>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.25rem' }}>{token.serviceName}</h2>
+          {(token.bankName || token.branch) && (
+            <div style={{ marginTop: '0.35rem', fontSize: '0.85rem', color: '#93c5fd', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🏛️ {token.bankName || 'Bank'}</span>
+              <span>•</span>
+              <span>📍 {token.branch || 'Main'} Branch</span>
+            </div>
+          )}
         </div>
         <div>
           <StatusBadge status={token.status} />
