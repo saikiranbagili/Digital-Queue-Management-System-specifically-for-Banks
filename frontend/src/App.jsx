@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { healthApi } from './services/api';
 import ProtectedRoute from './layouts/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 
@@ -24,6 +25,15 @@ const HomeRedirect = () => {
 };
 
 function App() {
+  useEffect(() => {
+    // Proactive background keep-alive ping every 4 mins so Render free tier never sleeps
+    healthApi.check().catch(() => {});
+    const interval = setInterval(() => {
+      healthApi.check().catch(() => {});
+    }, 4 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>

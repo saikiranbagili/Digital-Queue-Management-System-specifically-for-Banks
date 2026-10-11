@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { healthApi } from '../services/api';
 import { 
   Lock, 
   Mail, 
@@ -17,7 +18,7 @@ const Login = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('CUSTOMER');
+  const [role] = useState('CUSTOMER');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -25,6 +26,11 @@ const Login = () => {
 
   const { login, register } = useAuth();
   const navigate = useNavigate();
+
+  // Instant pre-warming of backend as soon as user opens login screen
+  useEffect(() => {
+    healthApi.check().catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +47,7 @@ const Login = () => {
         if (password.length < 6) {
           throw new Error('Password must be at least 6 characters long');
         }
-        user = await register(name, email, password, role);
+        user = await register(name, email, password, 'CUSTOMER');
       } else {
         user = await login(email, password);
       }
@@ -61,14 +67,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemoAccount = (demoEmail, demoPassword) => {
-    setIsSignUp(false);
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError('');
-    setSuccess('');
   };
 
   return (
@@ -211,12 +209,11 @@ const Login = () => {
               <select
                 id="role"
                 className="form-input"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
+                value="CUSTOMER"
+                disabled
+                style={{ background: '#f8fafc', color: '#1e293b', cursor: 'default' }}
               >
                 <option value="CUSTOMER">Customer (Request & Track Queues)</option>
-                <option value="STAFF">Staff (Call & Serve Desks)</option>
-                <option value="ADMIN">Administrator (Full Access & Oversight)</option>
               </select>
             </div>
           )}
@@ -259,35 +256,6 @@ const Login = () => {
             </span>
           )}
         </div>
-
-        {!isSignUp && (
-          <div className="quick-demo-accounts">
-            <h4>Or quick-fill demo credentials</h4>
-            <div className="demo-buttons-row">
-              <button
-                type="button"
-                className="demo-chip"
-                onClick={() => fillDemoAccount('customer@bankq.demo', 'Customer123')}
-              >
-                Customer
-              </button>
-              <button
-                type="button"
-                className="demo-chip"
-                onClick={() => fillDemoAccount('staff@bankq.demo', 'Staff123')}
-              >
-                Staff
-              </button>
-              <button
-                type="button"
-                className="demo-chip"
-                onClick={() => fillDemoAccount('admin@bankq.demo', 'Admin123')}
-              >
-                Administrator
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

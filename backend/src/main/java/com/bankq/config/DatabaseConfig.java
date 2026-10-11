@@ -71,6 +71,13 @@ public class DatabaseConfig {
             ds.setPassword(password);
         }
         
+        // Pool optimizations for instant response times
+        ds.setMinimumIdle(2);
+        ds.setMaximumPoolSize(10);
+        ds.setConnectionTimeout(20000);
+        ds.setIdleTimeout(300000);
+        ds.setMaxLifetime(1800000);
+        
         // Auto-configure driver if PostgreSQL
         if (jdbcUrl != null && jdbcUrl.startsWith("jdbc:postgresql:")) {
             ds.setDriverClassName("org.postgresql.Driver");
