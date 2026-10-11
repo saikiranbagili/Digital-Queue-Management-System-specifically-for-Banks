@@ -206,15 +206,20 @@ const Login = () => {
           {isSignUp && (
             <div className="form-group">
               <label htmlFor="role">Account Role</label>
-              <select
+              <input
                 id="role"
+                type="text"
                 className="form-input"
-                value="CUSTOMER"
-                disabled
-                style={{ background: '#f8fafc', color: '#1e293b', cursor: 'default' }}
-              >
-                <option value="CUSTOMER">Customer (Request & Track Queues)</option>
-              </select>
+                value="Customer"
+                readOnly
+                style={{
+                  background: '#f8fafc',
+                  color: '#0f2744',
+                  fontWeight: 600,
+                  cursor: 'default',
+                  border: '1.5px solid #e2e8f0'
+                }}
+              />
             </div>
           )}
 
